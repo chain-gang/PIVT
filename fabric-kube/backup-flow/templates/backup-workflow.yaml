@@ -28,8 +28,7 @@ spec:
     steps: 
     - 
 {{- range $i, $org := .Values.PeerOrgs }}
-{{- $peerStartIndex := (not $org.Template.Start) | ternary 0 $org.Template.Start | int }}
-{{- range $peerIndex := untilStep $peerStartIndex (add $peerStartIndex $org.Template.Count | int) 1 }}
+{{- range $peerIndex := until ($org.Template.Count | int) }}
 {{- $peer := (printf "peer%s" ($peerIndex | toString)) }}
 
       - name: backup-peer--{{ $org.Name | lower }}--{{ $peer | lower }}
@@ -61,8 +60,7 @@ spec:
 # third level: peers get/backup data
 {{- if or $.Values.flow.peer.backup.enabled $.Values.flow.couchdb.backup.enabled }}
 {{- range $i, $org := .Values.PeerOrgs }}
-{{- $peerStartIndex := (not $org.Template.Start) | ternary 0 $org.Template.Start | int }}
-{{- range $peerIndex := untilStep $peerStartIndex (add $peerStartIndex $org.Template.Count | int) 1 }}
+{{- range $peerIndex := until ($org.Template.Count | int) }}
 {{- $peer := (printf "peer%s" ($peerIndex | toString)) }}
 
   - name: backup-peer--{{ $org.Name | lower }}--{{ $peer | lower }}
@@ -105,8 +103,7 @@ spec:
 # leaf get-peer-data templates
 {{- if or $.Values.flow.peer.backup.enabled $.Values.flow.couchdb.backup.enabled }}
 {{- range $i, $org := .Values.PeerOrgs }}
-{{- $peerStartIndex := (not $org.Template.Start) | ternary 0 $org.Template.Start | int }}
-{{- range $peerIndex := untilStep $peerStartIndex (add $peerStartIndex $org.Template.Count | int) 1 }}
+{{- range $peerIndex := until ($org.Template.Count | int) }}
 {{- $peer := (printf "peer%s" ($peerIndex | toString)) }}
 
   - name: get-peer-data--{{ $org.Name | lower }}--{{ $peer | lower }}
@@ -134,8 +131,7 @@ spec:
 # leaf backup-peer-data templates
 {{- if or $.Values.flow.peer.backup.enabled $.Values.flow.couchdb.backup.enabled }}
 {{- range $i, $org := .Values.PeerOrgs }}
-{{- $peerStartIndex := (not $org.Template.Start) | ternary 0 $org.Template.Start | int }}
-{{- range $peerIndex := untilStep $peerStartIndex (add $peerStartIndex $org.Template.Count | int) 1 }}
+{{- range $peerIndex := until ($org.Template.Count | int) }}
 {{- $peer := (printf "peer%s" ($peerIndex | toString)) }}
 
   - name: backup-peer-data--{{ $org.Name | lower }}--{{ $peer | lower }}

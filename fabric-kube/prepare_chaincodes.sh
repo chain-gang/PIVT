@@ -5,6 +5,9 @@ if test "$#" -ne 2; then
    exit 2
 fi
 
+# exit when any command fails
+set -e
+
 project_folder=$1
 chaincode_folder=$2
 

@@ -1,8 +1,10 @@
-# Hyperledger Fabric meets Kubernetes
-![Fabric Meets K8S](https://raft-fabric-kube.s3-eu-west-1.amazonaws.com/images/fabric_meets_k8s.png)
+<p align="center">
+<img src="./PIVT.png" width="400">
+</p>
 
+
+____
 * [What is this?](#what-is-this)
-* [Who made this?](#who-made-this)
 * [License](#License)
 * [Requirements](#requirements)
 * [Network Architecture](#network-architecture)
@@ -12,6 +14,8 @@
   * [Installing chaincodes](#installing-chaincodes)
   * [Scaled-up Kafka network](#scaled-up-kafka-network)
   * [Scaled-up Raft network](#scaled-up-raft-network)
+  * [Adding new peer organizations](#adding-new-peer-organizations)
+  * [Adding new peers to organizations](#adding-new-peers-to-organizations)
 * [Configuration](#configuration)
 * [TLS](#tls)
 * [Backup-Restore](#backup-restore)
@@ -28,22 +32,15 @@ This repository contains a couple of Helm charts to:
 * Configure and launch the whole HL Fabric network, either:
   * A simple one, one peer per organization and Solo orderer
   * Or scaled up one, multiple peers per organization and Kafka or Raft orderer
-* Populate the network:
+* Populate the network declaratively:
   * Create the channels, join peers to channels, update channels for Anchor peers
   * Install/Instantiate all chaincodes, or some of them, or upgrade them to newer version
+* Add new peer organizations to an already running network declaratively
 * Backup and restore the state of whole network
 
-## [Who made this?](#who-made-this)
-This work is a result of collaborative effort between [APG](https://www.apg.nl/en) and 
-[Accenture NL](https://www.accenture.com/nl-en). 
-
-We had implemented these Helm charts for our project's needs, and as the results looks very promising, 
-decided to share the source code with the HL Fabric community. Hopefully it will fill a large gap!
-Special thanks to APG for allowing opening the source code :)
-
-We strongly encourage the HL Fabric community to take ownership of this repository, extend it for
-further use cases, use it as a test bed and adapt it to the Fabric provided samples to get rid of endless 
-Docker Compose files and Bash scripts. 
+**IMPORTANT:** Declarative flows use our home built [CLI tools](https://hub.docker.com/u/raft) 
+based on this [patch](https://gerrit.hyperledger.org/r/c/fabric/+/32197), **use at your own risk!**
+If you don't want this behaviour, you can use [release/0.7](https://github.com/APGGroeiFabriek/PIVT/tree/release/0.7) branch.
 
 ## [License](#License)
 This work is licensed under the same license with HL Fabric; [Apache License 2.0](LICENSE).
@@ -54,8 +51,9 @@ This work is licensed under the same license with HL Fabric; [Apache License 2.0
 * [Helm](https://github.com/helm/helm/releases/tag/v2.11.0), developed with 2.11, newer 2.xx versions should also work
 * [jq](https://stedolan.github.io/jq/download/) 1.5+ and [yq](https://pypi.org/project/yq/) 2.6+
 * [Argo](https://github.com/argoproj/argo/blob/master/demo.md), both CLI and Controller
-* [Minio](https://github.com/argoproj/argo/blob/master/ARTIFACT_REPO.md), only required for backup/restore flows
+* [Minio](https://github.com/argoproj/argo/blob/master/ARTIFACT_REPO.md), only required for backup/restore and new-peer-org flows
 * Run all the commands in *fabric-kube* folder
+* AWS EKS users please also apply this [fix](https://github.com/APGGroeiFabriek/PIVT/issues/1)
 
 ## [Network Architecture](#network-architecture)
 
@@ -70,7 +68,7 @@ This work is licensed under the same license with HL Fabric; [Apache License 2.0
 ### Scaled Up Raft Network Architecture
 
 ![Scaled Up Raft Network](https://raft-fabric-kube.s3-eu-west-1.amazonaws.com/images/HL_in_Kube_raft.png)
-**Note:** Due to TLS, transparent load balancing is not possible with Raft orderer as of Fabric 1.4.1.
+**Note:** Due to TLS, transparent load balancing is not possible with Raft orderer as of Fabric 1.4.2.
 
 ## [Go Over Samples](#go-over-samples)
 
@@ -89,9 +87,8 @@ This script:
 [network.yaml](fabric-kube/samples/simple/network.yaml) file in the project folder
 * Creates crypto material using `cryptogen` based on 
 [crypto-config.yaml](fabric-kube/samples/simple/crypto-config.yaml) file in the project folder
-* Creates channel artifacts by iterating over `channels` in network.yaml using `configtxgen` 
-* Compresses chaincodes into tar archives by iterating over `chaincodes` in network.yaml
-* Copies everything created into main chart folder: `hlf-kube` 
+* Compresses chaincodes as `tar` archives via `prepare_chaincodes.sh` script
+* Copies created stuff and configtx.yaml into main chart folder: `hlf-kube` 
 
 Now, we are ready to launch the network:
 ```
@@ -105,7 +102,7 @@ Wait for all pods are up and running:
 kubectl get pod --watch
 ```
 In a few seconds, pods will come up:
-![Screenshot_pods](https://s3-eu-west-1.amazonaws.com/raft-fabric-kube/images/Screenshot_pods.png)
+![Screenshot_pods](https://raft-fabric-kube.s3-eu-west-1.amazonaws.com/images/Screenshot_pods.png)
 Congrulations you have a running HL Fabric network in Kubernetes!
 
 ### [Creating channels](#creating-channels)
@@ -115,7 +112,9 @@ Next lets create channels, join peers to channels and update channels for Anchor
 helm template channel-flow/ -f samples/simple/network.yaml -f samples/simple/crypto-config.yaml | argo submit - --watch
 ```
 Wait for the flow to complete, finally you will see something like this:
-![Screenshot_channel_flow](https://s3-eu-west-1.amazonaws.com/raft-fabric-kube/images/Screenshot_channel_flow.png)
+![Screenshot_channel_flow](https://raft-fabric-kube.s3-eu-west-1.amazonaws.com/images/Screenshot_channel_flow_declarative.png)
+
+Channel flow is declarative and idempotent. You can run it many times. It will create the channel only if it doesn't exist, join peers to channels only if they didn't join yet, etc.
 
 ### [Installing chaincodes](#installing-chaincodes)
 
@@ -124,7 +123,7 @@ Next lets install/instantiate/invoke chaincodes
 helm template chaincode-flow/ -f samples/simple/network.yaml -f samples/simple/crypto-config.yaml | argo submit - --watch
 ```
 Wait for the flow to complete, finally you will see something like this:
-![Screenshot_chaincode_flow](https://s3-eu-west-1.amazonaws.com/raft-fabric-kube/images/Screenshot_chaincode_flow.png)
+![Screenshot_chaincode_flow](https://raft-fabric-kube.s3-eu-west-1.amazonaws.com/images/Screenshot_chaincode_flow_declarative.png)
 
 Install steps may fail even many times, nevermind about it, it's a known [Fabric bug](https://jira.hyperledger.org/browse/FAB-15026), 
 the flow will retry it and eventually succeed.
@@ -142,19 +141,23 @@ Or alternatively you can update chaincode ConfigMaps directly:
 helm template -f samples/simple/network.yaml -x templates/chaincode-configmap.yaml ./hlf-kube/ | kubectl apply -f -
 ```
 
-Next invoke chaincode flow again with a bit different settings:
+Next invoke chaincode flow again:
 ```
-helm template chaincode-flow/ -f samples/simple/network.yaml -f samples/simple/crypto-config.yaml -f chaincode-flow/values.upgrade.yaml --set chaincode.version=2.0 | argo submit - --watch
+helm template chaincode-flow/ -f samples/simple/network.yaml -f samples/simple/crypto-config.yaml --set chaincode.version=2.0 | argo submit - --watch
 ```
 All chaincodes are upgraded to version 2.0!
-![Screenshot_chaincode_upgade_all](https://s3-eu-west-1.amazonaws.com/raft-fabric-kube/images/Screenshot_chaincode_upgade_all.png)
+![Screenshot_chaincode_upgade_all](https://raft-fabric-kube.s3-eu-west-1.amazonaws.com/images/Screenshot_chaincode_upgrade_all_declarative.png)
 
 Lets upgrade only the chaincode named `very-simple` to version 3.0:
 ```
-helm template chaincode-flow/ -f samples/simple/network.yaml -f samples/simple/crypto-config.yaml -f chaincode-flow/values.upgrade.yaml --set chaincode.version=3.0 --set flow.chaincode.include={very-simple} | argo submit - --watch
+helm template chaincode-flow/ -f samples/simple/network.yaml -f samples/simple/crypto-config.yaml --set chaincode.version=3.0 --set flow.chaincode.include={very-simple} | argo submit - --watch
 ```
 Chaincode `very-simple` is upgarded to version 3.0!
-![Screenshot_chaincode_upgade_single](https://s3-eu-west-1.amazonaws.com/raft-fabric-kube/images/Screenshot_chaincode_upgade_single.png)
+![Screenshot_chaincode_upgade_single](https://raft-fabric-kube.s3-eu-west-1.amazonaws.com/images/Screenshot_chaincode_upgrade_single_declarative.png)
+
+Alternatively, you can also set chaincode versions individually via `network.chaincodes[].version`
+
+Chaincode flow is declarative and idempotent. You can run it many times. It will install chaincodes only if not installed, instatiate them only if not instantiated yet, etc.
 
 ### [Scaled-up Kafka network](#scaled-up-kafka-network)
 Now, lets launch a scaled up network backed by a Kafka cluster.
@@ -198,7 +201,7 @@ And install chaincodes:
 helm template chaincode-flow/ -f samples/scaled-kafka/network.yaml -f samples/scaled-kafka/crypto-config.yaml | argo submit - --watch
 ```
 ### [Scaled-up Raft network](#scaled-up-raft-network)
-Now, lets launch a scaled up network based on three Raft orderer nodes spanning two Orderer organizations. This sample also demonstrates how to enable TLS and use actual domain names for peers and orderers instead of internal Kubernetes service names. Enabling TLS globally is mandatory as of Fabric 1.4.1. Hopefully will be resolved [soon](https://jira.hyperledger.org/browse/FAB-15648). 
+Now, lets launch a scaled up network based on three Raft orderer nodes spanning two Orderer organizations. This sample also demonstrates how to enable TLS and use actual domain names for peers and orderers instead of internal Kubernetes service names. Enabling TLS globally is mandatory as of Fabric 1.4.2. This is [resolved](https://jira.hyperledger.org/browse/FAB-15648) but not released yet.
 
 _For TLS, we need [hostAliases support](https://github.com/argoproj/argo/issues/1265) in Argo workflows and also in Argo CLI, which is implemented but not released yet. You can install Argo controller from Argo repo with the below command. We have built Argo CLI binary from Argo repo for Linux which can be downloaded from [here](https://raft-fabric-kube.s3-eu-west-1.amazonaws.com/argo/argo-linux-amd64)._ **Use at your own risk!**
 
@@ -229,9 +232,9 @@ Then create necessary stuff:
 ```
 Lets launch our Raft based Fabric network in _broken_ state:
 ```
-helm install ./hlf-kube --name hlf-kube -f samples/scaled-raft-tls/network.yaml -f samples/scaled-raft-tls/crypto-config.yaml
+helm install ./hlf-kube --name hlf-kube -f samples/scaled-raft-tls/network.yaml -f samples/scaled-raft-tls/crypto-config.yaml 
 ```
-The pods will start but they cannot communicate to each other since domain names are unknown.
+The pods will start but they cannot communicate to each other since domain names are unknown. You might also want to use the option `--set peer.launchPods=false --set orderer.launchPods=false` to make this process faster.
 
 Run this command to collect the host aliases:
 ```
@@ -272,7 +275,6 @@ hostAliases:
 ```
 The IPs are internal ClusterIPs of related services. Important point here is, as opposed to pod ClusterIPs, service ClusterIPs are stable, they won't change if service is not deleted and re-created.
 
-
 Next, let's update the network with this host aliases information. These entries goes into pods' `/etc/hosts` file via Pod [hostAliases](https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/) spec.
 ```
 helm upgrade hlf-kube ./hlf-kube -f samples/scaled-raft-tls/network.yaml -f samples/scaled-raft-tls/crypto-config.yaml -f samples/scaled-raft-tls/hostAliases.yaml  
@@ -293,14 +295,144 @@ And install chaincodes:
 helm template chaincode-flow/ -f samples/scaled-raft-tls/network.yaml -f samples/scaled-raft-tls/crypto-config.yaml -f samples/scaled-raft-tls/hostAliases.yaml | argo submit - --watch
 ```
 
+### [Adding new peer organizations](#adding-new-peer-organizations)
+
+#### Simple network
+
+First tear down and re-launch and populate the simple network as described in [launching the network](launching-the-network), [creating channels](creating-channels) and [installing chaincodes](installing-chaincodes).
+
+At this point we can update the original configtx.yaml, crypto-config.yaml and network.yaml for the new organizations. First take backup of the originals:
+```
+rm -rf tmp && mkdir -p tmp && cp samples/simple/configtx.yaml samples/simple/crypto-config.yaml samples/simple/network.yaml tmp/
+```
+Then override with extended ones:
+```
+cp samples/simple/extended/* samples/simple/ && cp samples/simple/configtx.yaml hlf-kube/
+```
+
+Let's create the necessary stuff:
+```
+./extend.sh samples/simple
+```
+This script basically performs a `cryptogen extend` command to create missing crypto material.
+
+Then update the network for new crypto material and configtx and launch the new peers:
+```
+helm upgrade hlf-kube ./hlf-kube -f samples/simple/network.yaml -f samples/simple/crypto-config.yaml
+```
+
+Then lets create new peer organizations:
+```
+helm template peer-org-flow/ -f samples/simple/network.yaml -f samples/simple/crypto-config.yaml -f samples/simple/configtx.yaml | argo submit - --watch
+```
+This flow:
+* Parses consortiums from `configtx.yaml` using `genesisProfile` defined in `network.yaml`
+* Adds missing organizations to consortiums
+* Adds missing organizations to existing channels as defined in `network.yaml`
+* Emits an error for non-existing consortiums
+* Skips non-existing channels (they will be created by channel flow later)
+
+When the flow completes the output will be something like this:
+![Screenshot_peerorg_flow_declarative](https://raft-fabric-kube.s3-eu-west-1.amazonaws.com/images/Screenshot_peerorg_flow_declarative.png)
+
+By default, peer org flow updates all existing channels and consortiums as necessary. You can limit this behaviour by setting `flow.channel.include` and `flow.consortium.include` variables respectively.
+
+At this point make sure new peer pods are up and running. Then run the channel flow to create new channels and populate 
+existing ones regarding the new organizations:
+```
+helm template channel-flow/ -f samples/simple/network.yaml -f samples/simple/crypto-config.yaml | argo submit - --watch
+```
+
+Finally run the chaincode flow to populate the chaincodes regarding new organizations:
+```
+helm template chaincode-flow/ -f samples/simple/network.yaml -f samples/simple/crypto-config.yaml --set chaincode.version=2.0 | argo submit - --watch
+```
+Please note, we increased the chaincode version. This is required to upgrade the chaincodes with new policies. Otherwise, new peers' endorsements will fail.
+
+Peer org flow is declarative and idempotent. You can run it many times. It will add peer organizations to consortiums only if 
+they are not already in consortiums, add peer organizations to channels only if not already in channels.
+
+Restore the original files
+```
+cp tmp/configtx.yaml tmp/crypto-config.yaml tmp/network.yaml samples/simple/
+```
+
+#### Raft orderer network
+
+Adding new peer organizations to a network which utilizes Raft orderer is similar. But there is one point to be aware of: After adding new organizations we need to update the rest of the network with new host aliases information. This means existing pods will be restarted and will lose all the data. That's why persistence should be enabled.
+
+First tear down and re-launch and populate the Raft network as described in [scaled-up-raft-network](scaled-up-raft-network) but pass the following additional flag: `-f samples/scaled-raft-tls/persistence.yaml`
+
+At this point we can update the original configtx.yaml, crypto-config.yaml and network.yaml for the new organizations. First take backup of the originals:
+```
+rm -rf tmp && mkdir -p tmp && cp samples/scaled-raft-tls/configtx.yaml samples/scaled-raft-tls/crypto-config.yaml samples/scaled-raft-tls/network.yaml tmp/
+```
+
+Then override with extended ones:
+```
+cp samples/scaled-raft-tls/extended/* samples/scaled-raft-tls/ && cp samples/scaled-raft-tls/configtx.yaml hlf-kube/
+```
+
+Create new crypto material:
+```
+./extend.sh samples/scaled-raft-tls
+```
+
+Update the network for new crypto material and configtx and launch new peers 
+```
+helm upgrade hlf-kube ./hlf-kube -f samples/scaled-raft-tls/network.yaml -f samples/scaled-raft-tls/crypto-config.yaml -f samples/scaled-raft-tls/persistence.yaml -f samples/scaled-raft-tls/hostAliases.yaml
+```
+
+Collect extended host aliases:
+```
+./collect_host_aliases.sh ./samples/scaled-raft-tls/ 
+```
+
+Upgrade host aliases in pods and wait for all pods are up and running:
+```
+helm upgrade hlf-kube ./hlf-kube -f samples/scaled-raft-tls/network.yaml -f samples/scaled-raft-tls/crypto-config.yaml -f samples/scaled-raft-tls/hostAliases.yaml -f samples/scaled-raft-tls/persistence.yaml
+kubectl  get pod --watch
+```
+
+Let's create the new peer organizations:
+```
+helm template peer-org-flow/ -f samples/scaled-raft-tls/configtx.yaml -f samples/scaled-raft-tls/crypto-config.yaml -f samples/scaled-raft-tls/network.yaml -f samples/scaled-raft-tls/hostAliases.yaml | argo submit - --watch
+```
+
+Then run the channel flow to create new channels and populate existing ones regarding the new organizations:
+```
+helm template channel-flow/ -f samples/scaled-raft-tls/network.yaml -f samples/scaled-raft-tls/crypto-config.yaml -f samples/scaled-raft-tls/hostAliases.yaml | argo submit - --watch
+```
+
+Finally run the chaincode flow to populate the chaincodes regarding new organizations:
+```
+helm template chaincode-flow/ -f samples/scaled-raft-tls/network.yaml -f samples/scaled-raft-tls/crypto-config.yaml -f samples/scaled-raft-tls/hostAliases.yaml --set chaincode.version=2.0 | argo submit - --watch
+```
+Please note, we increased the chaincode version. This is required to upgrade the chaincodes with new policies. Otherwise, new peers' endorsements will fail.
+
+
+Restore original files
+```
+cp tmp/configtx.yaml tmp/crypto-config.yaml tmp/network.yaml samples/scaled-raft-tls/
+```
+
+### [Adding new peers to organizations](#adding-new-peers-to-organizations)
+
+Update the `Template.Count` value for relevant `PeerOrgs` in `crypto-config.yaml` and run the sequence 
+in [adding new peer organizations](#adding-new-peer-organizations). 
+
+No need to run `peer-org-flow` in this case as peer organizations didn't change. 
+But running it won't hurt anyway, remember it's idempotent ;)
+
 ## [Configuration](#configuration)
 
 There are basically 2 configuration files: [crypto-config.yaml](fabric-kube/samples/simple/crypto-config.yaml) 
 and [network.yaml](fabric-kube/samples/simple/network.yaml). 
 
+
 ### crypto-config.yaml 
 This is Fabric's native configuration for `cryptogen` tool. We use it to define the network architecture. We honour `OrdererOrgs`, 
-`PeerOrgs`, `Template.Count` in PeerOrgs (peer count) and even `Template.Start`.
+`PeerOrgs`, `Template.Count` at PeerOrgs (peer count) and `Specs.Hostname[]` at OrdererOrgs.
 
 ```yaml
 OrdererOrgs:
@@ -313,7 +445,13 @@ PeerOrgs:
     Domain: aptalkarga.tr
     EnableNodeOUs: true
     Template:
-      Start: 9  # we also honour Start 
+      Count: 1
+    Users:
+      Count: 1
+  - Name: Nevergreen
+    Domain: nevergreen.nl
+    EnableNodeOUs: true
+    Template:
       Count: 1
     Users:
       Count: 1
@@ -323,8 +461,10 @@ This file defines how network is populated regarding channels and chaincodes.
 
 ```yaml
 network:
-  # only used by init script to create genesis block 
+  # used by init script to create genesis block and by peer-org-flow to parse consortiums
   genesisProfile: OrdererGenesis
+  # used by init script to create genesis block 
+  systemChannelID: testchainid
 
   # defines which organizations will join to which channels
   channels:
@@ -338,6 +478,8 @@ network:
   # defines which chaincodes will be installed to which organizations
   chaincodes:
     - name: very-simple
+      # if defined, this will override the global chaincode.version value
+      version: # "2.0" 
       # chaincode will be installed to all peers in these organizations
       orgs: [Karga, Nevergreen, Atlantis]
       # at which channels are we instantiating/upgrading chaincode?
@@ -437,7 +579,7 @@ kubectl  get pod --watch
 
 ### TLS
 
-Transparent load balancing is not possible with TLS as of Fabric 1.4.1. So, instead of `Peer-Org`, `Orderer-Org` or `Orderer-LB` services, you need to connect to individual `Peer` and `Orderer` services.
+Transparent load balancing is not possible with TLS as of Fabric 1.4.2. So, instead of `Peer-Org`, `Orderer-Org` or `Orderer-LB` services, you need to connect to individual `Peer` and `Orderer` services.
 
 ### Multiple Fabric networks in the same Kubernetes cluster
 

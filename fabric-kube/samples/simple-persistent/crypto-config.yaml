@@ -17,7 +17,6 @@ PeerOrgs:
     Domain: aptalkarga.tr
     EnableNodeOUs: true
     Template:
-      Start: 9  # we also honour Start 
       Count: 1
     Users:
       Count: 1

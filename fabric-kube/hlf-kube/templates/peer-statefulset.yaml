@@ -1,6 +1,6 @@
-{{- range $i, $org := .Values.PeerOrgs }}
-{{- $peerStartIndex := (not $org.Template.Start) | ternary 0 $org.Template.Start | int }}
-{{- range $peerIndex := untilStep $peerStartIndex (add $peerStartIndex $org.Template.Count | int) 1 }}
+{{- if .Values.peer.launchPods }}
+{{- range $i, $org := $.Values.PeerOrgs }}
+{{- range $peerIndex := until ($org.Template.Count | int) }}
 {{- $peer := (printf "peer%s" ($peerIndex | toString)) }}
 {{- $peerAddress := $.Values.useActualDomains | ternary (printf "%s.%s:7051" $peer $org.Domain) (printf "hlf-peer--%s--%s:7051" ($org.Name | lower) ($peer | lower)) }}
 # peerAddress: {{ $peerAddress }}
@@ -78,7 +78,7 @@ spec:
             path: admincerts/cert.pem
       - name: peer-admin-msp
         secret:
-          secretName: hlf-peer--{{ $org.Name | lower }}--{{ $peer | lower }}-admin-msp
+          secretName: hlf-peer--{{ $org.Name | lower }}--admin-msp
           items:
           - key: cert.pem
             path: signcerts/cert.pem
@@ -221,9 +221,10 @@ spec:
           value: 0.0.0.0:7052
         - name: CORE_PEER_GOSSIP_BOOTSTRAP
           value: >- 
-        {{- range $peerIndexInner := untilStep $peerStartIndex (add $peerStartIndex $org.Template.Count | int) 1 }}
+        {{- range $peerIndexInner := until ($org.Template.Count | int) }}
         {{- $peer := (printf "peer%s" ($peerIndexInner | toString)) }}
-              {{ $peerAddress }}
+        {{- $peerGossipAddress := $.Values.useActualDomains | ternary (printf "%s.%s:7051" $peer $org.Domain) (printf "hlf-peer--%s--%s:7051" ($org.Name | lower) ($peer | lower)) }}
+              {{ $peerGossipAddress }}
         {{- end }} {{- /* Peers */ -}}{{""}}
 
         - name: CORE_PEER_GOSSIP_EXTERNALENDPOINT
@@ -291,3 +292,4 @@ spec:
 ---
 {{- end }} {{- /* Peers */ -}}
 {{- end }} {{- /* Orgs */ -}}
+{{- end }} {{- /* if launchPods */ -}}

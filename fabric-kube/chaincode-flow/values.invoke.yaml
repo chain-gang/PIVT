@@ -8,5 +8,3 @@ flow:
     enabled: false
   instantiate:
     enabled: false
-  upgrade:
-    enabled: false

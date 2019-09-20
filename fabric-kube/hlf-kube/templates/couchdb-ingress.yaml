@@ -10,8 +10,7 @@ metadata:
 spec:
   rules:
 {{- range $i, $org := .Values.PeerOrgs }}
-{{- $peerStartIndex := (not $org.Template.Start) | ternary 0 $org.Template.Start | int }}
-{{- range $peerIndex := untilStep $peerStartIndex (add $peerStartIndex $org.Template.Count | int) 1 }}
+{{- range $peerIndex := until ($org.Template.Count | int) }}
 {{- $peer := (printf "peer%s" ($peerIndex | toString)) }}
   - host: hlf-couchdb-{{ $org.Name | lower }}-{{ $peer | lower }}.{{ $.Values.ingress.parentDomain }}
     http:
@@ -25,8 +24,7 @@ spec:
   tls:
   - hosts:
 {{- range $i, $org := .Values.PeerOrgs }}
-{{- $peerStartIndex := (not $org.Template.Start) | ternary 0 $org.Template.Start | int }}
-{{- range $peerIndex := untilStep $peerStartIndex (add $peerStartIndex $org.Template.Count | int) 1 }}
+{{- range $peerIndex := until ($org.Template.Count | int) }}
 {{- $peer := (printf "peer%s" ($peerIndex | toString)) }}
     - hlf-couchdb-{{ $org.Name | lower }}-{{ $peer | lower }}.{{ $.Values.ingress.parentDomain }}
 {{- end }} {{- /* Peers */ -}}

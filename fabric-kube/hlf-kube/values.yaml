@@ -2,7 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-hyperledgerVersion: 1.4.1
+hyperledgerVersion: 1.4.2
 
 # see the Raft sample in the README for how to enable TLS
 tlsEnabled: false
@@ -39,6 +39,8 @@ ingress:
 # peer settings. applies to all peers
 peer:
   logLevel: info
+  # launch peer pods? setting to false is useful for collecting host aliases and fast restart afterwards
+  launchPods: true
   chaincode:
     logging:
       level:  info
@@ -52,6 +54,10 @@ peer:
   restore: 
     # restore peers data from backup during restore procedure?
     enabled: true
+  operations:
+    enabled: false
+    metrics:
+      provider: prometheus
     
 # CouchDB settings. applies to all CouchDB's
 couchdb:
@@ -72,12 +78,11 @@ couchdb:
 
 # Orderer settings. applies to all Orderer pods
 orderer:
-  # TODO remove?
-  # # should be solo, kafka or etcdraft
-  # type: solo
   # should be greater than 1 only if kafka orderer is used
   replicas: 1
   logLevel: info
+  # launch orderer pods? setting to false is useful for collecting host aliases and fast restart afterwards
+  launchPods: true
   persistence:
     enabled: false
     size: 16Gi

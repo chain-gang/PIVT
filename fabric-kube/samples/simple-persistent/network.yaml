@@ -1,6 +1,8 @@
 network:
-  # only used by init script to create genesis block 
+  # used by init script to create genesis block and by peer-org-flow to parse consortiums
   genesisProfile: OrdererGenesis
+  # used by init script to create genesis block 
+  systemChannelID: testchainid
 
   # defines which organizations will join to which channels
   channels:
@@ -14,6 +16,8 @@ network:
   # defines which chaincodes will be installed to which organizations
   chaincodes:
     - name: very-simple
+      # if defined, this will override the global chaincode.version value
+      version: # "2.0" 
       # chaincode will be installed to all peers in these organizations
       orgs: [Karga, Nevergreen, Atlantis]
       # at which channels are we instantiating/upgrading chaincode?

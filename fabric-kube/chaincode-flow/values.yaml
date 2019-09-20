@@ -21,6 +21,8 @@ useActualDomains: false
 # see the Raft sample in the README for how to use this
 hostAliases: []
 
+logLevel: info
+
 flow:
   chaincode:
     # should we run top level chaincode flows in parallel?
@@ -32,12 +34,8 @@ flow:
     enabled: true  
     parallel: true
   instantiate:
-    # should we run instantiate step?
+    # should we run instantiate/upgrade step?
     enabled: true  
-    parallel: true
-  upgrade:
-    # should we run upgrade step? upgrade and instantiate should be mutually exclusive
-    enabled: false  
     parallel: true
   invoke:
     # should we run invoke step? 

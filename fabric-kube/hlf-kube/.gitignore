@@ -1,3 +1,5 @@
+configtx.yaml
+newpeerorg-configtx.yaml
 crypto-config/
 channel-artifacts/
 chaincode/
