@@ -35,4 +35,11 @@ network:
         orgs: [Karga, Atlantis]
         policy: OR('KargaMSP.member','AtlantisMSP.member')
 
+    - name: comm-paper
+      orgs: [Karga, Atlantis]
+      channels:
+      - name: private-karga-atlantis
+        orgs: [Karga, Atlantis]
+        policy: OR('KargaMSP.member','AtlantisMSP.member')
+
 
