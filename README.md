@@ -1,5 +1,6 @@
-# Hyperledger Fabric meets Kubernetes
-![Fabric Meets K8S](https://raft-fabric-kube.s3-eu-west-1.amazonaws.com/images/fabric_meets_k8s.png)
+# PIVT
+### Framework for Deploying Hyperledger Fabric on Kubernetes
+![PIVT](./PIVT.png)
 
 * [What is this?](#what-is-this)
 * [Who made this?](#who-made-this)
@@ -39,18 +40,6 @@ This repository contains a couple of Helm charts to:
 **IMPORTANT:** Declarative flows use our home built [CLI tools](https://hub.docker.com/u/raft) 
 based on this [patch](https://gerrit.hyperledger.org/r/c/fabric/+/32197), **use at your own risk!**
 If you don't want this behaviour, you can use [release/0.7](https://github.com/APGGroeiFabriek/PIVT/tree/release/0.7) branch.
-
-## [Who made this?](#who-made-this)
-This work is a result of collaborative effort between [APG](https://www.apg.nl/en) and 
-[Accenture NL](https://www.accenture.com/nl-en). 
-
-We had implemented these Helm charts for our project's needs, and as the results looks very promising, 
-decided to share the source code with the HL Fabric community. Hopefully it will fill a large gap!
-Special thanks to APG for allowing opening the source code :)
-
-We strongly encourage the HL Fabric community to take ownership of this repository, extend it for
-further use cases, use it as a test bed and adapt it to the Fabric provided samples to get rid of endless 
-Docker Compose files and Bash scripts. 
 
 ## [License](#License)
 This work is licensed under the same license with HL Fabric; [Apache License 2.0](LICENSE).
