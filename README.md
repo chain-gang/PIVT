@@ -1,5 +1,3 @@
-# PIVT
-#### Deployment Framework for Hyperledger Fabric on Kubernetes 
 
 ![PIVT](./PIVT.png)
 
