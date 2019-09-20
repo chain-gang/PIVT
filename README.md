@@ -1,5 +1,7 @@
+<p align="center">
+<img src="./PIVT.png" width="400">
+</p>
 
-![PIVT](./PIVT.png)
 
 ____
 * [What is this?](#what-is-this)
