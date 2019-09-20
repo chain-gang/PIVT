@@ -3,7 +3,6 @@
 ![PIVT](./PIVT.png)
 
 * [What is this?](#what-is-this)
-* [Who made this?](#who-made-this)
 * [License](#License)
 * [Requirements](#requirements)
 * [Network Architecture](#network-architecture)
