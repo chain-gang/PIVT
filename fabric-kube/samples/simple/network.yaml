@@ -41,5 +41,4 @@ network:
       - name: private-karga-atlantis
         orgs: [Karga, Atlantis]
         policy: OR('KargaMSP.member','AtlantisMSP.member')
-
-
+      ctor: '{"Args": ["org.papernet.commercialpaper:instantiate"]}'
