@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-deployment
+  labels:
+    app: sample
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sample
+  template:
+    metadata:
+      labels:
+        app: sample
+    spec:
+      volumes:
+
+      # application codes 
+      {{- range $i, $application := $.Values.applications }} 
+      - name: appcode-{{ $application.name | lower }}
+        configMap:
+          name: hlf-appcode--{{ $application.name | lower }}
+      {{- end }}
+      
+      # network configuration
+      - name: gateway
+        configMap:
+          name: hlf-netconfig--{{ .Values.chaincode | lower }}
+      
+      # this config map should already be generated after installing the chaincodes. (hlf-kube chart)    
+      - name: chaincode
+        configMap:
+          name: hlf-chaincode--{{ .Values.chaincode | lower }}
+      
+
+      containers:
+      - name: node-alpine-plus
+        image: gwolf3/node-lts-alpine-plus
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        {{- range $i, $application := $.Values.applications }}
+        - mountPath: /application/{{ $application.name | lower }}
+          name: appcode-{{ $application.name | lower }}
+        {{- end }}
+        - mountPath: /gateway
+          name: gateway
+        - mountPath: /chaincodes
+          name: chaincode
+        
+        # for testing:
+        command: ["sh",
+                   "-c",
+                   "while :; do sleep 5 ; done"]

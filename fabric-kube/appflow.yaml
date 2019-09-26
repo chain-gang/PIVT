@@ -1,0 +1,59 @@
+---
+# Source: application-flow/templates/basic-sample.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-deployment
+  labels:
+    app: sample
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sample
+  template:
+    metadata:
+      labels:
+        app: sample
+    spec:
+      volumes:
+
+      # application codes 
+      - name: appcode-magnetocorp
+        configMap:
+          name: hlf-appcode--magnetocorp 
+      - name: appcode-digibank
+        configMap:
+          name: hlf-appcode--digibank
+      
+      # network configuration
+      - name: gateway
+        configMap:
+          name: hlf-netconfig--comm-paper
+      
+      # this config map should already be generated after installing the chaincodes. (hlf-kube chart)    
+      - name: chaincode
+        configMap:
+          name: hlf-chaincode--comm-paper
+      
+
+      containers:
+      - name: name
+        image: node:lts-alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /application/magnetocorp
+          name: appcode-magnetocorp
+        - mountPath: /application/digibank
+          name: appcode-digibank
+        - mountPath: /gateway
+          name: gateway
+        - mountPath: /chaincodes
+          name: chaincode
+        
+        # for testing:
+        command: ["sh",
+                   "-c",
+                   "while :; do sleep 5 ; done"]
+

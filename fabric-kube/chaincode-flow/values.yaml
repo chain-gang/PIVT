@@ -31,7 +31,7 @@ flow:
     include: [comm-paper]
   install:
     # should we run install step?
-    enabled: false  
+    enabled: false 
     parallel: true
   instantiate:
     # should we run instantiate/upgrade step?
@@ -40,7 +40,7 @@ flow:
   invoke:
     # should we run invoke step? 
     # we invoke chaincode after instantiate/upgrade to force the peers to actually create the chaincode containers
-    enabled: true 
+    enabled: false 
     parallel: true
     function: '{"function":"ping","Args":[""]}'
 
