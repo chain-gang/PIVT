@@ -273,6 +273,50 @@ spec:
           value: DEBUG
         - name: GRPC_TRACE
           value:  all
+
+        
+        {{- if $.Values.peer.operations.enabled }}
+
+        {{- if $.Values.peer.operations.metrics.enabled }}
+        {{- if or (gt $.Values.hyperledgerVersion "1.4.1") (eq $.Values.hyperledgerVersion "1.4.1") }}
+         - name: CORE_OPERATIONS_LISTENADDRESS
+           value: :9443
+         - name: CORE_METRICS_PROVIDER
+           value: {{ $.Values.peer.operations.metrics.provider }} 
+         - name: CORE_CHAINCODE_LOGGING_LEVEL
+           value: DEBUG
+        {{- end }}
+        {{- end }}
+
+        {{- if $.Values.peer.operations.readiness.enabled }}
+        {{- if or (gt $.Values.hyperledgerVersion "1.4.1") (eq $.Values.hyperledgerVersion "1.4.1") }}
+         readinessProbe:
+           httpGet:
+             path: /healthz
+             port: 9443
+             scheme: "HTTP"
+           initialDelaySeconds: 30
+           periodSeconds: 5
+           timeoutSeconds: 5
+        {{- end }}
+        {{- end }}
+
+        {{- if $.Values.peer.operations.liveness.enabled }}
+        {{- if or (gt $.Values.hyperledgerVersion "1.4.1") (eq $.Values.hyperledgerVersion "1.4.1") }}
+         livenessProbe:
+           httpGet:
+             path: /healthz
+             port: 9443
+             scheme: "HTTP"
+           initialDelaySeconds: 30
+           periodSeconds: 10
+           timeoutSeconds: 5
+           failureThreshold: 6
+           successThreshhold: 1
+        {{- end }}
+        {{- end }}
+
+        {{- end }}
         
       # CouchDB container
       - name: couchdb
