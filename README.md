@@ -2,7 +2,7 @@
 <img src="./PIVT.png" width="400">
 </p>
 
-
+# PIVT +
 ____
 * [What is this?](#what-is-this)
 * [License](#License)
@@ -28,7 +28,11 @@ ____
 * [Conclusion](#conclusion)
 
 ## [What is this?](#what-is-this)
-This repository contains a couple of Helm charts to:
+
+PIVT + is an fork an extention of the original [PIVT project](https://github.com/APGGroeiFabriek/PIVT) by APGGroeiFabriek. 
+
+The original project was aimed to:
+
 * Configure and launch the whole HL Fabric network, either:
   * A simple one, one peer per organization and Solo orderer
   * Or scaled up one, multiple peers per organization and Kafka or Raft orderer
@@ -37,6 +41,8 @@ This repository contains a couple of Helm charts to:
   * Install/Instantiate all chaincodes, or some of them, or upgrade them to newer version
 * Add new peer organizations to an already running network declaratively
 * Backup and restore the state of whole network
+
+PIVT + extends this framework by enabling the deployment of sample applications and one-click monitoring. PIVT+'s goal is to build around the core ideology of PIVT tool for deploying Fabric networks to a more fully featured ecosystem for fast and easy development on Hyperledger. 
 
 **IMPORTANT:** Declarative flows use our home built [CLI tools](https://hub.docker.com/u/raft) 
 based on this [patch](https://gerrit.hyperledger.org/r/c/fabric/+/32197), **use at your own risk!**
