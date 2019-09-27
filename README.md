@@ -12,7 +12,7 @@ ____
   * [Launching the network](#launching-the-network)
   * [Creating channels](#creating-channels)
   * [Installing chaincodes](#installing-chaincodes)
-  * [Launching an application](launching-application)
+  * [Launching an application](#launching-application)
   * [Scaled-up Kafka network](#scaled-up-kafka-network)
   * [Scaled-up Raft network](#scaled-up-raft-network)
   * [Adding new peer organizations](#adding-new-peer-organizations)
