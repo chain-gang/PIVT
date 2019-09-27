@@ -29,9 +29,9 @@ ____
 
 ## [What is this?](#what-is-this)
 
-PIVT + is an fork an extention of the original [PIVT project](https://github.com/APGGroeiFabriek/PIVT) by APGGroeiFabriek. 
+**PIVT + is a fork and extention of the original [PIVT project](https://github.com/APGGroeiFabriek/PIVT)** by APGGroeiFabriek. 
 
-The original project was aimed to:
+**The original PIVT project was aimed to make it easy to deploy Fabric networks on Kubernetes, using Argo Workflow CRD's and Helm's powerful templating capabilities.** It makes it super easy to do things like:
 
 * Configure and launch the whole HL Fabric network, either:
   * A simple one, one peer per organization and Solo orderer
@@ -42,7 +42,7 @@ The original project was aimed to:
 * Add new peer organizations to an already running network declaratively
 * Backup and restore the state of whole network
 
-PIVT + extends this framework by enabling the deployment of sample applications and one-click monitoring. PIVT+'s goal is to build around the core ideology of PIVT tool for deploying Fabric networks to a more fully featured ecosystem for fast and easy development on Hyperledger. 
+**PIVT + extends this framework by enabling the deployment of sample applications and one-click monitoring. PIVT+'s goal is to build around the core ideology of PIVT tool for deploying Fabric networks to a more fully featured ecosystem for fast and easy development on Hyperledger.**
 
 **IMPORTANT:** Declarative flows use our home built [CLI tools](https://hub.docker.com/u/raft) 
 based on this [patch](https://gerrit.hyperledger.org/r/c/fabric/+/32197), **use at your own risk!**
