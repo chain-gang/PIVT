@@ -45,7 +45,7 @@ network:
 
       # in development: to be used for defining which application to initialize.    
       application:
-      - name: magnetocorp
+      - name: magneto
         org: Atlantis
       - name: digibank
         org: Karga

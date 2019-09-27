@@ -19,7 +19,7 @@ mkdir -p hlf-kube/chaincode
 chaincodes=$(yq ".network.chaincodes[].name" $config_file -c -r)
 for chaincode in $chaincodes; do
   echo "creating hlf-kube/chaincode/$chaincode.tar"
-
+  echo "running tar -czf hlf-kube/chaincode/$chaincode.tar -C $chaincode_folder $chaincode/"
   tar -czf hlf-kube/chaincode/$chaincode.tar -C $chaincode_folder $chaincode/
 done
 

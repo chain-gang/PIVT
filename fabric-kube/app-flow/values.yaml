@@ -1,0 +1,4 @@
+chaincode: comm-paper
+applications:
+  - name: magnetocorp
+  - name: digibank

@@ -55,9 +55,14 @@ peer:
     # restore peers data from backup during restore procedure?
     enabled: true
   operations:
-    enabled: false
+    enabled: true
     metrics:
       provider: prometheus
+      enabled: true
+    readiness:
+      enabled: true
+    liveness:
+      enabled: true
     
 # CouchDB settings. applies to all CouchDB's
 couchdb:
@@ -92,6 +97,16 @@ orderer:
   restore: 
     # restore orderers data from backup during restore procedure?
     enabled: true
+  operations:
+    enabled: true
+    metrics: 
+      provider: prometheus
+      enabled: true
+    readiness:
+      enabled: false
+    liveness:
+      enabled: true
+
 
 # CA (Certificate Authority) settings. applies to all CA's
 ca:

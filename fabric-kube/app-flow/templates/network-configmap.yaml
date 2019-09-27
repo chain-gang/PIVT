@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hlf-netconfig--{{ .Values.chaincode | lower }}
+  labels:
+    type: netconfig
+binaryData:
+  netconfig.tar: |-
+    {{ ($.Files.Get (printf "netconfig/network.tar")) | b64enc }}
+---

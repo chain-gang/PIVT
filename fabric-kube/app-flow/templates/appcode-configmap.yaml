@@ -1,0 +1,13 @@
+{{- range $i, $application := .Values.applications }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hlf-appcode--{{ $application.name | lower }}
+  labels:
+    appcodeName: {{ $application.name }}
+    type: appcode
+binaryData:
+  {{ $application.name }}.tar: |-
+    {{ ($.Files.Get (printf "appcode/%s.tar" $application.name)) | b64enc }}
+---
+{{- end }} {{- /* appcode */ -}}

@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-deployment
+  labels:
+    app: sample
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sample
+  template:
+    metadata:
+      labels:
+        app: sample
+    spec:
+      volumes:
+      - name: app-code
+        hostPath:
+          path: /Users/glenn.wolfe/ibm-dev/opensource/PIVT/fabric-kube/samples/application/comm-paper
+      - name: gateway
+        hostPath:
+          path: /Users/glenn.wolfe/ibm-dev/opensource/PIVT/fabric-kube/samples/application/gateway
+      
+      # this contains additional secrets than needed and should be edited in future
+      - name: config
+        hostPath:
+          path: /Users/glenn.wolfe/ibm-dev/opensource/PIVT/fabric-kube/samples/simple
+
+      containers:
+      - name: name
+        image: node:lts-alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /application
+          name: app-code
+        - mountPath: /gateway
+          name: gateway
+        - mountPath: /config
+          name: config
+        
+        # for testing:
+        command: ["sh",
+                   "-c",
+                   "while :; do sleep 5 ; done"]
