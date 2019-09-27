@@ -12,12 +12,13 @@ ____
   * [Launching the network](#launching-the-network)
   * [Creating channels](#creating-channels)
   * [Installing chaincodes](#installing-chaincodes)
+  * [Launching an application](launching-application)
   * [Scaled-up Kafka network](#scaled-up-kafka-network)
   * [Scaled-up Raft network](#scaled-up-raft-network)
   * [Adding new peer organizations](#adding-new-peer-organizations)
   * [Adding new peers to organizations](#adding-new-peers-to-organizations)
 * [Configuration](#configuration)
-* [TLS](#tls)
+* [TLS](#tls) 
 * [Backup-Restore](#backup-restore)
   * [Requirements](#backup-restore-requirements)
   * [Flow](#backup-restore-flow)
@@ -164,6 +165,157 @@ Chaincode `very-simple` is upgarded to version 3.0!
 Alternatively, you can also set chaincode versions individually via `network.chaincodes[].version`
 
 Chaincode flow is declarative and idempotent. You can run it many times. It will install chaincodes only if not installed, instatiate them only if not instantiated yet, etc.
+
+### [Launching an application](#launching-application)
+
+You may want to deploy an application that can plug into your Hyperledger Fabric network to interact with chaincodes. 
+
+For this example, we'll use the latest example from the Fabric Docs, **"Commercial Paper"**. The link to the walkthrough documentation using docker-compose can be found here, give it a read so you have an idea what's going on: https://hyperledger-fabric.readthedocs.io/en/release-1.4/tutorial/commercial_paper.html#digibank-applications. 
+
+A cause of confusion with trying to generalize the Hyperledger Fabric examples is that they have many built in assumptions- about environment variables, network configuration, and the tools you are using. One of my goals is to make this process as agnostic to specifications as possible, making it easier to get up and running on any infra or network. 
+
+Quick look at the fs:
+
+`PIVT/fabric-kube/app-flow`: A Helm chart for deploying Fabric applications on Kubernetes. 
+  - `PIVT/fabric-kube/samples/<your-network>`: contains network configuration files (ie; network.yaml, crypto-config)
+  - - `PIVT/fabric-kube/samples/application/gateway`: you may need to edit/customize your gateway.yaml file. this is used by application to communicate with network. For basic sample, you should be good to go. This will probably be automated soon. 
+  - `PIVT/fabric-kube/samples/application/<x-chain-code>/<x-applications>`
+  
+ 
+Quickstart:
+
+Go to `fabric-kube` directory. 
+
+Tar gzip our application codes so we can install them into map.
+1. Run `sh prepare_appcodes.sh samples/simple/ samples/application/comm-paper/`
+
+Copy over some network details our app will need.
+2. `cp samples/application/gateway/simple-network-sample.yaml samples/simple/connection-profile.yaml`
+
+Install some config maps.
+3. `helm template app-flow/ -x templates/appcode-configmap.yaml -f samples/simple/network.yaml -f samples/simple/crypto-config.yaml | kubectl apply -f -`
+4. `helm template app-flow/ -x templates/basic-sample.yaml -f samples/simple/network.yaml -f samples/simple/crypto-config.yaml | kubectl apply -f -`
+
+Your config maps should now look something like this:
+```
+gWOLF3 fabric-kube$ kubectl get configmaps
+NAME                          DATA   AGE
+hlf-appcode--digibank         0      29h
+hlf-appcode--magnetocorp      0      29h
+hlf-chaincode--comm-paper     0      3d8h
+hlf-chaincode--even-simpler   0      3d8h
+hlf-chaincode--very-simple    0      3d8h
+hlf-netconfig--comm-paper     0      29h
+hlf-scripts                   4      3d8h
+```
+
+Deploy your application pod. (see gwolf3/node-lts-alpine-plus)
+5. `helm template app-flow/ -x templates/appcode-configmap.yaml -f samples/simple/network.yaml -f samples/simple/crypto-config.yaml | kubectl apply -f -`
+
+If everything went well, run `kubectl get pods -A`. You should now see a sample-deployment pod. 
+
+Lets exec into it to get started. Run `kubectl exec -it <sample-pod-name> sh`
+
+Let's get things setup first. (TODO: this will be automated)
+```
+tar -xvf chaincodes/comm-paper.tar -C /mnt/
+tar -xvf application/magnetocorp/magnetocorp.tar  -C /mnt/
+tar -xvf application/digibank/digibank.tar -C /mnt/
+tar -xvf gateway/netconfig.tar -C /mnt/
+```
+
+Great. Now were set to go. Let's do some NPM magic. 
+
+
+We'll start with the magnetocorp application, because we want to issue some paper. 
+
+Setup: `cd /mnt/magnetocorp` && `npm install`
+
+
+Create wallet: `node addToWallet.js`
+Sample output:
+```
+-----BEGIN CERTIFICATE-----
+MIICHzCCAcWgAwIBAgIRANISMEWKvl+ZtIilPXuDa+cwCgYIKoZIzj0EAwIwazEL
+MAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDVNhbiBG
+cmFuY2lzY28xFTATBgNVBAoTDGF0bGFudGlzLmNvbTEYMBYGA1UEAxMPY2EuYXRs
+YW50aXMuY29tMB4XDTE5MDkyMzE4MjkwMFoXDTI5MDkyMDE4MjkwMFowaDELMAkG
+A1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDVNhbiBGcmFu
+Y2lzY28xDzANBgNVBAsTBmNsaWVudDEbMBkGA1UEAwwSVXNlcjFAYXRsYW50aXMu
+Y29tMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEKp/0CBxToE0AF8yqmUxH1pAc
+myXV7zMrsQJJg/x4PwJv0Qb2Goz4H48SexNDH77xaMeA0otbuLIjk+0qylSAg6NN
+MEswDgYDVR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwKwYDVR0jBCQwIoAgzpHN
+9DPD1Zp/mmlYACfdd3/+9X3z/YzKamAxTc5sUgswCgYIKoZIzj0EAwIDSAAwRQIh
+APteH5BiH7herWhGjXP4mwo2jjm6N4HdL1+mFC87eBZKAiAiOy+LBaYW1807o7F/
+DZZYPPAu8B4p6feVEpUGe3mFpw==
+-----END CERTIFICATE-----
+
+-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgV0OCjFx1msvScd4u
+PIQboLmfsIJrriUrAyMoAbkOgxWhRANCAAQqn/QIHFOgTQAXzKqZTEfWkBybJdXv
+MyuxAkmD/Hg/Am/RBvYajPgfjxJ7E0MfvvFox4DSi1u4siOT7SrKVICD
+-----END PRIVATE KEY-----
+
+done
+```
+
+
+Issue some paper: `node issue.js`
+Sample Output: 
+```
+Connect to Fabric gateway.
+Use network channel: private-karga-atlantis.
+Use org.papernet.commercialpaper smart contract.
+Submit commercial paper issue transaction.
+Process issue transaction response.
+MagnetoCorp commercial paper : 00001 successfully issued for value 5000000
+Transaction complete.
+Disconnect from Fabric gateway.
+Issue program complete.
+```
+
+Ok great, at this point we have some paper. So let's now buy some. (For purposes of example, we'll stay in the same container)
+
+Setup: `cd /mnt/digibank` && `npm install`
+
+Create Wallet: `node addToWallet.js`
+Sample Output:
+```
+credPath /mnt/crypto-config/peerOrganizations/atlantis.com/users/Admin@atlantis.com
+done
+```
+
+Buy some paper: `node buy.js`
+Sample Output:
+```
+Connect to Fabric gateway.
+Use network channel: private-karga-atlantis
+Use org.papernet.commercialpaper smart contract.
+Submit commercial paper buy transaction.
+Process buy transaction response.
+MagnetoCorp commercial paper : 00001 successfully purchased by DigiBank
+Transaction complete.
+Disconnect from Fabric gateway.
+Buy program complete.
+```
+
+
+Redeem that paper: `node redeem.js`
+Sample Output:
+```
+Connect to Fabric gateway.
+Use network channel: private-karga-atlantis.
+Use org.papernet.commercialpaper smart contract.
+Submit commercial paper redeem transaction.
+Process redeem transaction response.
+MagnetoCorp commercial paper : 00001 successfully redeemed with MagnetoCorp
+Transaction complete.
+Disconnect from Fabric gateway.
+Redeem program complete.
+```
+
+And there you go! Congradulations, you've just moved around some imaginary paper on a sample Fabric blockchain network! 
+
 
 ### [Scaled-up Kafka network](#scaled-up-kafka-network)
 Now, lets launch a scaled up network backed by a Kafka cluster.
