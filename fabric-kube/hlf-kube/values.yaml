@@ -55,7 +55,7 @@ peer:
     # restore peers data from backup during restore procedure?
     enabled: true
   operations:
-    enabled: true
+    enabled: false
     metrics:
       provider: prometheus
       enabled: true
@@ -98,12 +98,12 @@ orderer:
     # restore orderers data from backup during restore procedure?
     enabled: true
   operations:
-    enabled: true
+    enabled: false
     metrics: 
       provider: prometheus
       enabled: true
     readiness:
-      enabled: false
+      enabled: true
     liveness:
       enabled: true
 
