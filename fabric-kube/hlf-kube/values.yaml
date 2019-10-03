@@ -55,7 +55,7 @@ peer:
     # restore peers data from backup during restore procedure?
     enabled: true
   operations:
-    enabled: true
+    enabled: false
     metrics:
       provider: prometheus
       enabled: true
@@ -63,6 +63,7 @@ peer:
       enabled: true
     liveness:
       enabled: true
+    port: 9443
     
 # CouchDB settings. applies to all CouchDB's
 couchdb:
@@ -98,14 +99,15 @@ orderer:
     # restore orderers data from backup during restore procedure?
     enabled: true
   operations:
-    enabled: true
+    enabled: false
     metrics: 
       provider: prometheus
       enabled: true
     readiness:
-      enabled: false
+      enabled: true
     liveness:
       enabled: true
+    port: 12443  
 
 
 # CA (Certificate Authority) settings. applies to all CA's

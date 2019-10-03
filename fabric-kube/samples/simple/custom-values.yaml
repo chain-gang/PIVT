@@ -1,0 +1,7 @@
+peer:
+  operations:
+    enabled: true
+
+orderer:
+  operations:
+    enabled: true

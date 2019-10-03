@@ -191,44 +191,42 @@ spec:
  
          {{- if $.Values.orderer.operations.metrics.enabled }}
          {{- if or (gt $.Values.hyperledgerVersion "1.4.1") (eq $.Values.hyperledgerVersion "1.4.1") }}
-          - name: CORE_OPERATIONS_LISTENADDRESS
-            value: :8443
-          - name: CORE_METRICS_PROVIDER
-            value: {{ $.Values.orderer.operations.metrics.provider }}
-          - name: CORE_CHAINCODE_LOGGING_LEVEL
-            value: DEBUG
-         {{- end }}
-         {{- end }}
+        - name: ORDERER_OPERATIONS_LISTENADDRESS
+          value: {{- printf " :%v" $.Values.orderer.operations.port }}
+        - name: CORE_METRICS_PROVIDER
+          value: {{ $.Values.orderer.operations.metrics.provider }}
+        {{- end }}
+        {{- end }}
  
-         {{- if $.Values.orderer.operations.readiness.enabled }}
-         {{- if or (gt $.Values.hyperledgerVersion "1.4.1") (eq $.Values.hyperledgerVersion "1.4.1") }}
-          readinessProbe:
-            httpGet:
-              path: /healthz
-              port: 8443
-              scheme: "HTTP"
-            initialDelaySeconds: 30
-            periodSeconds: 5
-            timeoutSeconds: 5
-         {{- end }}
-         {{- end }}
+        {{- if $.Values.orderer.operations.readiness.enabled }}
+        {{- if or (gt $.Values.hyperledgerVersion "1.4.1") (eq $.Values.hyperledgerVersion "1.4.1") }}
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ $.Values.orderer.operations.port }}
+            scheme: "HTTP"
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 5
+        {{- end }}
+        {{- end }}
  
-         {{- if $.Values.orderer.operations.liveness.enabled }}
-         {{- if or (gt $.Values.hyperledgerVersion "1.4.1") (eq $.Values.hyperledgerVersion "1.4.1") }}
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              port: 8443
-              scheme: "HTTP"
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 6
-            successThreshhold: 1
-         {{- end }}
-         {{- end }}
+        {{- if $.Values.orderer.operations.liveness.enabled }}
+        {{- if or (gt $.Values.hyperledgerVersion "1.4.1") (eq $.Values.hyperledgerVersion "1.4.1") }}
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ $.Values.orderer.operations.port }}
+            scheme: "HTTP"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 6
+          successThreshold: 1
+        {{- end }}
+        {{- end }}
  
-         {{- end }}
+        {{- end }}
 
       {{- end }} {{- /* if/else backup/restore enabled */ -}}{{""}}
 ---
