@@ -4,4 +4,4 @@ peer:
 
 orderer:
   operations:
-    enabled: false
+    enabled: true

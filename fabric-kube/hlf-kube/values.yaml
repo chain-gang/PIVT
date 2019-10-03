@@ -63,6 +63,7 @@ peer:
       enabled: true
     liveness:
       enabled: true
+    port: 9443
     
 # CouchDB settings. applies to all CouchDB's
 couchdb:
@@ -106,6 +107,7 @@ orderer:
       enabled: true
     liveness:
       enabled: true
+    port: 12443  
 
 
 # CA (Certificate Authority) settings. applies to all CA's

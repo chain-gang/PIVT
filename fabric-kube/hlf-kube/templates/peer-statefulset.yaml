@@ -280,7 +280,7 @@ spec:
         {{- if $.Values.peer.operations.metrics.enabled }}
         {{- if or (gt $.Values.hyperledgerVersion "1.4.1") (eq $.Values.hyperledgerVersion "1.4.1") }}
         - name: CORE_OPERATIONS_LISTENADDRESS
-          value: :9443
+          value: {{- printf " :%v" $.Values.peer.operations.port }}
         - name: CORE_METRICS_PROVIDER
           value: {{ $.Values.peer.operations.metrics.provider }}
         {{- end }}
@@ -291,7 +291,7 @@ spec:
         readinessProbe:
           httpGet:
             path: /healthz
-            port: 9443
+            port: {{ $.Values.peer.operations.port }}
             scheme: "HTTP"
           initialDelaySeconds: 30
           periodSeconds: 5
@@ -304,7 +304,7 @@ spec:
         livenessProbe:
           httpGet:
             path: /healthz
-            port: 9443
+            port: {{ $.Values.peer.operations.port }}
             scheme: "HTTP"
           initialDelaySeconds: 30
           periodSeconds: 10
