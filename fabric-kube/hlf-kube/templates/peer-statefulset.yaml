@@ -279,10 +279,16 @@ spec:
 
         {{- if $.Values.peer.operations.metrics.enabled }}
         {{- if or (gt $.Values.hyperledgerVersion "1.4.1") (eq $.Values.hyperledgerVersion "1.4.1") }}
+
         - name: CORE_OPERATIONS_LISTENADDRESS
           value: {{- printf " :%v" $.Values.peer.operations.port }}
         - name: CORE_METRICS_PROVIDER
           value: {{ $.Values.peer.operations.metrics.provider }}
+
+        ports:
+          - containerPort: {{ $.Values.peer.operations.port }}
+            name: metrics
+            protocol: TCP
         {{- end }}
         {{- end }}
 

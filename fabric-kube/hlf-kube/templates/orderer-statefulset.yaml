@@ -191,10 +191,17 @@ spec:
  
          {{- if $.Values.orderer.operations.metrics.enabled }}
          {{- if or (gt $.Values.hyperledgerVersion "1.4.1") (eq $.Values.hyperledgerVersion "1.4.1") }}
+
         - name: ORDERER_OPERATIONS_LISTENADDRESS
           value: {{- printf " :%v" $.Values.orderer.operations.port }}
-        - name: CORE_METRICS_PROVIDER
+        - name: ORDERER_METRICS_PROVIDER
           value: {{ $.Values.orderer.operations.metrics.provider }}
+
+
+        ports:
+          - containerPort: {{ $.Values.orderer.operations.port }}
+            name: metrics
+            protocol: TCP
         {{- end }}
         {{- end }}
  
