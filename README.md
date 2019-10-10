@@ -192,7 +192,9 @@ Tar gzip our application codes so we can install them into map.
 Copy over some network details our app will need.
 2. `cp samples/application/gateway/simple-network-sample.yaml samples/simple/connection-profile.yaml`
 
-Install some config maps.
+Install some config maps....
+
+
 3. application code: `helm template app-flow/ -x templates/appcode-configmap.yaml -f samples/simple/network.yaml -f samples/simple/crypto-config.yaml | kubectl apply -f -`
 
 4. network gateway: `helm template app-flow/ -x templates/network-configmap.yaml -f samples/simple/network.yaml -f samples/simple/crypto-config.yaml | kubectl apply -f -`
